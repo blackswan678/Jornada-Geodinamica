@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jornada Geodinâmica — Explorando o Brasil e o Mundo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&family=Nunito:wght@400;700&display=swap">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--b1:#0f3460;--b2:#16537e;--b3:#1e88a8;--ink:#fff;--gold:#FFD93D;--glass:rgba(255,255,255,.08);--line:rgba(255,255,255,.18);--ok:#2ECC71;--bad:#E74C3C;--dk:rgba(0,0,0,.28);color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:'Nunito',system-ui,sans-serif;background:#16537e linear-gradient(135deg,var(--b1),var(--b2) 50%,var(--b3));background-attachment:fixed;min-height:100vh;color:var(--ink);overflow-x:hidden}
+h1,h2,h3,.btn,.timer-text{font-family:'Baloo 2','Trebuchet MS',sans-serif}
+header{text-align:center;padding:16px 10px 6px}
+header h1{font-size:clamp(1.7rem,4vw,2.8rem);background:linear-gradient(90deg,#FFD93D,#FF6B6B,#4ECDC4,#95E1D3);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+header p{opacity:.85}
+@keyframes shine{to{background-position:300% 50%}}
+.container{display:grid;grid-template-columns:1fr 340px;gap:18px;max-width:1300px;margin:0 auto;padding:10px 16px 28px}
+@media(max-width:1000px){.container{display:flex;flex-direction:column}.panel{display:contents}.dice-area{order:-2}.board-wrap{order:-1;padding:10px}.dice{width:64px;height:64px;padding:8px;gap:3px}.dice-area h3{display:none}.token{width:10px;height:10px;border-width:1px}.board{gap:4px}.num{font-size:.55rem;left:3px}.cell{border-width:1px}}
+.board-wrap,.card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:16px}
+.board{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:6px;width:100%;max-width:700px;aspect-ratio:1;margin:0 auto}
+.cell{position:relative;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.3);box-shadow:0 3px 8px rgba(0,0,0,.3);font-weight:700}
+.cell.blue{background:linear-gradient(135deg,#3a86ff,#2563eb)}
+.cell.yellow{background:linear-gradient(135deg,#FFD93D,#F59E0B)}
+.cell.orange{background:linear-gradient(135deg,#FF8C42,#F97316)}
+.cell.start{background:linear-gradient(135deg,#2ECC71,#27AE60)}
+.cell.finish{background:linear-gradient(135deg,#FF4757,#C0392B)}
+.num{position:absolute;top:2px;left:5px;font-size:.65rem;opacity:.85;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.yellow .num{color:#4a2c00;text-shadow:none}
+.sym{font-size:clamp(.9rem,2.4vw,1.5rem)}
+.tokens{position:absolute;bottom:2px;left:0;right:0;display:flex;flex-wrap:wrap;justify-content:center;gap:2px}
+.token{flex:0 0 auto;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+.token.active{animation:bounce .8s ease-in-out infinite}
+@keyframes bounce{50%{transform:translateY(-6px)}}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card h3{font-size:1.15rem;margin-bottom:10px}
+.players-list{display:flex;flex-direction:column;gap:8px}
+.player-item{display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;background:var(--dk);border:2px solid transparent}
+.player-item.current{border-color:var(--gold);background:rgba(255,217,61,.15)}
+.player-dot{width:22px;height:22px;border-radius:50%;border:2px solid #fff;flex-shrink:0}
+.player-name{font-weight:700}
+.player-pos{font-size:.8rem;opacity:.8}
+.dice-area{text-align:center}
+.dice{width:88px;height:88px;margin:8px auto;background:linear-gradient(135deg,#fff,#e0e0e0);border-radius:16px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:12px;gap:4px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.dice.rolling{animation:roll .6s ease-in-out}
+@keyframes roll{to{transform:rotate(720deg)}}
+.dot{border-radius:50%}
+.dot.on{background:#1a1a1a}
+.btn{width:100%;padding:11px;border:none;border-radius:12px;font-size:1.05rem;cursor:pointer;color:#fff;background:linear-gradient(135deg,#FF6B6B,#FF4757);box-shadow:0 4px 14px rgba(255,71,87,.4);margin-top:10px}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.secondary{background:linear-gradient(135deg,#4ECDC4,#26A69A)}
+.log{max-height:140px;overflow-y:auto;font-size:.82rem;line-height:1.5}
+.log div{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.78rem}
+.legend div{display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--dk);border-radius:6px}
+.legend i{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;overflow-y:auto}
+.overlay.active{display:flex}
+.modal,.setup-card{background:linear-gradient(135deg,#1e3a5f,#2c5282);border:2px solid var(--line);border-radius:20px;padding:26px;max-width:540px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:auto}
+.modal h2{font-size:1.5rem;text-align:center}
+.phase-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;margin:6px 0}
+.easy{background:#3a86ff}.medium{background:#F59E0B;color:#4a2c00}.hard{background:#F97316}
+.who{text-align:center;opacity:.85;margin-bottom:10px}
+.question-text{background:var(--dk);padding:16px;border-radius:12px;font-size:1.05rem;line-height:1.5;margin-bottom:12px;border-left:4px solid var(--gold)}
+.timer-bar{height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
+.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#FF6B6B,#FFD93D,#4ECDC4);transition:width 1s linear}
+.timer-text{text-align:center;font-size:1.2rem;margin:6px 0 10px}
+.options{display:flex;flex-direction:column;gap:8px}
+.option{padding:11px;border-radius:10px;background:var(--glass);border:2px solid var(--line);cursor:pointer;text-align:left;color:#fff;font:inherit}
+.option:hover:not(:disabled){border-color:var(--gold);background:rgba(255,255,255,.15)}
+.option:disabled{cursor:default}
+.option.correct{background:rgba(46,204,113,.4);border-color:var(--ok)}
+.option.wrong{background:rgba(231,76,60,.4);border-color:var(--bad)}
+.result-msg{text-align:center;padding:12px;border-radius:12px;margin-top:12px;font-weight:700}
+.result-msg.correct{background:rgba(46,204,113,.25);border:2px solid var(--ok)}
+.result-msg.wrong{background:rgba(231,76,60,.25);border:2px solid var(--bad)}
+.expl{margin-top:10px;line-height:1.5;font-size:.95rem}
+.setup{background:linear-gradient(135deg,var(--b1),var(--b2));z-index:200}
+.setup.hidden{display:none}
+.setup-card{text-align:center;background:var(--glass)}
+.setup-card h1{font-size:2rem;background:linear-gradient(90deg,#FFD93D,#FF6B6B,#4ECDC4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.setup-card p{opacity:.85;margin:4px 0 14px}
+.rules{font-size:.85rem;text-align:left;background:var(--dk);padding:10px 12px;border-radius:10px;line-height:1.5}
+.field{margin:14px 0;text-align:left}
+.field label{display:block;margin-bottom:6px;font-weight:700;font-size:.9rem}
+.field input,.field select{width:100%;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--dk);color:#fff;font:inherit;margin-bottom:8px}
+.field select option{background:#1e3a5f}
+.win-card{text-align:center;position:relative;z-index:1}
+.win-card h1{font-size:2.6rem;background:linear-gradient(90deg,#FFD93D,#FF6B6B);-webkit-background-clip:text;background-clip:text;color:transparent}
+.trophy{font-size:5rem}
+.confetti{position:absolute;top:-10px;width:10px;height:10px;animation:fall 3s linear infinite}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<div class="overlay active setup" id="setup">
+  <div class="setup-card">
+    <h1>🎮 Jornada Geodinâmica</h1>
+    <p>Explorando o Brasil e o Mundo ✨ 9º Ano</p>
+    <div class="rules">🎲 Jogue o dado e responda à pergunta da casa.<br>✅ Acertou: ganha pontos e fica na casa.<br>❌ Errou ou acabou o tempo: volta 2 casas.<br>🏁 Chegue à casa final e acerte a pergunta para vencer!</div>
+    <div class="field">
+      <label for="numPlayers">Quantos jogadores?</label>
+      <select id="numPlayers"><option value="2">2 jogadores</option><option value="3">3 jogadores</option><option value="4" selected>4 jogadores</option></select>
+      <label>Nomes</label>
+      <div id="playerInputs"></div>
+    </div>
+    <button class="btn" id="startBtn">🚀 Iniciar Aventura!</button>
+  </div>
+</div>
+
+<header><h1>🎮 Jornada Geodinâmica 🌍</h1><p>✨ Explorando o Brasil e o Mundo — 9º Ano ✨</p></header>
+
+<div class="container">
+  <div class="board-wrap"><div class="board" id="board"></div></div>
+  <div class="panel">
+    <div class="card"><h3>👥 Jogadores</h3><div class="players-list" id="playersList"></div></div>
+    <div class="card dice-area">
+      <h3>🎲 Dado</h3>
+      <div class="dice" id="dice"></div>
+      <button class="btn" id="rollBtn">🎲 Jogar Dado</button>
+      <div id="turnInfo" style="margin-top:10px"></div>
+    </div>
+    <div class="card"><h3>📜 Registro</h3><div class="log" id="log"></div></div>
+    <div class="card"><h3>🎨 Legenda</h3>
+      <div class="legend">
+        <div><i style="background:#3a86ff"></i>Fase 1 · Fácil (2–16)</div>
+        <div><i style="background:#F59E0B"></i>Fase 2 · Médio (17–32)</div>
+        <div><i style="background:#F97316"></i>Fase 3 · Difícil (33–48)</div>
+        <div><i style="background:#FF4757"></i>Chegada 🏁 (49)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="questionModal"><div class="modal" id="modalContent"></div></div>
+
+<div class="overlay" id="winOverlay">
+  <div class="win-card">
+    <div class="trophy">🏆</div>
+    <h1 id="winnerName"></h1>
+    <p id="winScores" style="font-size:1.1rem;line-height:1.7;margin-bottom:10px"></p>
+    <button class="btn" id="restartBtn">🔄 Jogar Novamente</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const N=49,TIME=30,COLORS=['#FF6B6B','#4ECDC4','#FFD93D','#A78BFA'],ICONS=['🌍','🏔️','🌋','🌊','🌳','🧭'];
+const LV={1:['easy','Fase 1 · Fácil'],2:['medium','Fase 2 · Médio'],3:['hard','Fase 3 · Difícil']};
+const phase=n=>n<=16?1:n<=32?2:3;
+// [pergunta, correta, errada1, errada2, errada3, explicação]
+const DATA={
+1:[
+["Qual é a camada mais externa e sólida da Terra?","Crosta terrestre","Manto","Núcleo externo","Núcleo interno","A crosta é a camada rígida e fina sobre a qual vivemos. Abaixo dela fica o manto."],
+["O Círculo de Fogo do Pacífico é famoso por concentrar:","Vulcões e terremotos","Desertos extensos","Florestas tropicais","Geleiras continentais","Ele margeia o oceano Pacífico, onde há muitos limites de placas tectônicas, e por isso tem intensa atividade vulcânica e sísmica."],
+["Qual é o maior país da América do Sul em extensão territorial?","Brasil","Argentina","Peru","Colômbia","O Brasil ocupa cerca de metade do território sul-americano."],
+["Qual é o maior oceano do planeta?","Pacífico","Atlântico","Índico","Ártico","O Pacífico cobre cerca de um terço da superfície da Terra."],
+["A linha imaginária que divide a Terra nos hemisférios Norte e Sul é:","Linha do Equador","Meridiano de Greenwich","Trópico de Capricórnio","Trópico de Câncer","O Equador é um paralelo (0°). Já o meridiano de Greenwich separa os hemisférios Leste e Oeste."],
+["O meridiano de Greenwich divide a Terra nos hemisférios:","Leste e Oeste","Norte e Sul","Tropical e Polar","Continental e Oceânico","Greenwich é o meridiano de referência (0°) e separa os hemisférios Oriental e Ocidental."],
+["Qual é a região brasileira mais populosa?","Sudeste","Nordeste","Sul","Norte","O Sudeste reúne mais de 40% da população do país, com destaque para São Paulo e Rio de Janeiro."]
+],
+2:[
+["Quando duas placas tectônicas se afastam, o limite entre elas é chamado de:","Divergente","Convergente","Transformante","Erosivo","Nos limites divergentes surge nova crosta, como na Dorsal Mesoatlântica."],
+["A Falha de San Andreas, nos EUA, é um exemplo de limite:","Transformante","Divergente","Convergente","De ponto quente","Nos limites transformantes as placas deslizam lateralmente uma ao lado da outra, gerando terremotos."],
+["A Cordilheira dos Andes se formou principalmente pelo choque entre qual par de placas?","Nazca e Sul-Americana","Africana e Eurasiana","Pacífica e Norte-Americana","Indo-Australiana e Antártica","A placa oceânica de Nazca mergulha sob a Sul-Americana (subducção) e eleva os Andes."],
+["Qual é o maior bioma brasileiro em extensão?","Amazônia","Cerrado","Mata Atlântica","Caatinga","A Amazônia ocupa cerca de 49% do território nacional."],
+["Qual bioma é exclusivamente brasileiro?","Caatinga","Amazônia","Pantanal","Pampa","A Caatinga, típica do semiárido nordestino, só ocorre no Brasil. Os demais biomas se estendem por outros países."],
+["Qual bacia hidrográfica é a maior do mundo em volume de água?","Bacia Amazônica","Bacia do Rio da Prata","Bacia do São Francisco","Bacia Tocantins-Araguaia","O rio Amazonas tem a maior vazão do planeta."],
+["Qual destes blocos econômicos inclui o Brasil?","Mercosul","União Europeia","ASEAN","USMCA","O Mercosul reúne países sul-americanos e busca integração comercial entre eles."],
+["Qual teoria propõe que os continentes já estiveram unidos na Pangeia?","Deriva continental","Teoria da Evolução","Teoria do Big Bang","Teoria da Relatividade","Proposta por Alfred Wegener, foi a base para a posterior Tectônica de Placas."]
+],
+3:[
+["Por que o Brasil raramente sofre grandes terremotos?","Está no interior da Placa Sul-Americana, longe dos limites de placas","Seu solo é formado só por rochas sedimentares","Seu clima tropical impede abalos sísmicos","Não existe nenhuma falha geológica no território","Terremotos fortes ocorrem sobretudo nas bordas das placas. Pequenos tremores ainda acontecem no Brasil, por acomodação de falhas."],
+["Qual é o país mais populoso do mundo atualmente?","Índia","China","Estados Unidos","Indonésia","Segundo a ONU, a Índia ultrapassou a China em 2023."],
+["Os combustíveis fósseis e a maioria dos fósseis estão associados principalmente às rochas:","Sedimentares","Ígneas","Metamórficas","Vulcânicas","Os sedimentos se acumulam em camadas e preservam restos de seres vivos. Já o calor extremo das rochas ígneas e metamórficas destrói os fósseis."],
+["O pré-sal brasileiro é uma reserva de petróleo localizada:","Sob uma espessa camada de sal, no fundo do oceano Atlântico","Em terra firme, na Floresta Amazônica","Acima das camadas de sal, em lagos do Cerrado","No interior do Planalto das Guianas","Os campos ficam no litoral Sudeste, a milhares de metros de profundidade, sob uma grossa camada de sal."],
+["O Canal de Suez, no Egito, liga o Mar Mediterrâneo ao:","Mar Vermelho","Mar Negro","Mar Cáspio","Golfo Pérsico","O canal encurta a rota entre Europa e Ásia, dispensando contornar a África."],
+["O fenômeno El Niño se caracteriza por:","Aquecimento anormal das águas do Pacífico equatorial","Resfriamento anormal das águas do Pacífico equatorial","Aumento da camada de ozônio","Derretimento total da Antártida","O fenômeno oposto, de resfriamento, é a La Niña. Ambos alteram as chuvas e as temperaturas em várias regiões."],
+["Quando uma placa oceânica converge com uma continental, o que ocorre?","A oceânica, mais densa, mergulha sob a continental","A continental mergulha sob a oceânica","As placas se afastam e formam nova crosta","As placas deslizam lateralmente sem se chocar","É a subducção. Ela forma fossas oceânicas, vulcões e cadeias de montanhas, como os Andes."]
+]};
+
+let P=[],cur=0,timer=null,pool={};
+const FACE={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const showDie=v=>$('dice').innerHTML=Array.from({length:9},(_,i)=>`<i class="dot${FACE[v].includes(i)?' on':''}"></i>`).join('');
+const log=h=>{$('log').insertAdjacentHTML('afterbegin',`<div>${h}</div>`)};
+
+// Espiral 7x7 (49 casas): começa embaixo à esquerda e termina no centro
+function spiral(n){const g=[],seen=new Set(),D=[[1,0],[0,-1],[-1,0],[0,1]];let c=0,r=n-1,d=0;
+  for(let i=0;i<n*n;i++){g.push([c,r]);seen.add(c+','+r);let nc=c+D[d][0],nr=r+D[d][1];
+    if(nc<0||nr<0||nc>=n||nr>=n||seen.has(nc+','+nr)){d=(d+1)%4;nc=c+D[d][0];nr=r+D[d][1]}c=nc;r=nr}
+  return g}
+
+function drawInputs(){const n=+$('numPlayers').value;
+  $('playerInputs').innerHTML=Array.from({length:n},(_,i)=>`<input maxlength="14" placeholder="Jogador ${i+1}" aria-label="Nome do jogador ${i+1}" style="border-left:6px solid ${COLORS[i]}">`).join('')}
+
+function drawBoard(){
+  $('board').innerHTML=spiral(7).map(([c,r],i)=>{const n=i+1,k=n==1?'start':n==N?'finish':['','blue','yellow','orange'][phase(n)];
+    return `<div class="cell ${k}" style="grid-column:${c+1};grid-row:${r+1}"><span class="num">${n}</span><span class="sym">${n==1?'🚩':n==N?'🏁':ICONS[n%ICONS.length]}</span><div class="tokens" id="t${n}"></div></div>`}).join('')}
+
+function render(){
+  document.querySelectorAll('.tokens').forEach(t=>t.innerHTML='');
+  P.forEach((p,i)=>$('t'+p.pos).insertAdjacentHTML('beforeend',`<i class="token${i==cur?' active':''}" style="background:${p.color}"></i>`));
+  $('playersList').innerHTML=P.map((p,i)=>`<div class="player-item${i==cur?' current':''}"><i class="player-dot" style="background:${p.color}"></i><div><div class="player-name">${esc(p.name)}</div><div class="player-pos">Casa ${p.pos} · ${p.score} pts</div></div></div>`).join('');
+  $('turnInfo').innerHTML=`Vez de <b>${esc(P[cur].name)}</b>`}
+
+function startGame(){
+  P=[...$('playerInputs').children].map((el,i)=>({name:el.value.trim()||'Jogador '+(i+1),pos:1,score:0,color:COLORS[i]}));
+  cur=0;pool={};$('log').innerHTML='';$('rollBtn').disabled=false;
+  $('setup').classList.remove('active');drawBoard();render();
+  log(`🚀 A jornada começou! Vez de <b>${esc(P[0].name)}</b>.`)}
+
+function rollDice(){
+  const btn=$('rollBtn');if(btn.disabled)return;btn.disabled=true;
+  const d=$('dice'),v=1+Math.floor(Math.random()*6);let t=0;d.classList.add('rolling');
+  const iv=setInterval(()=>{showDie(1+Math.floor(Math.random()*6));
+    if(++t>5){clearInterval(iv);showDie(v);d.classList.remove('rolling');move(v)}},100)}
+
+function move(v){
+  const p=P[cur];let s=v;log(`🎲 <b>${esc(p.name)}</b> tirou ${v}.`);
+  const iv=setInterval(()=>{
+    if(s--<=0||p.pos>=N){clearInterval(iv);setTimeout(ask,350);return}
+    p.pos++;render()},330)}
+
+function ask(){
+  const p=P[cur],ph=phase(p.pos),[cls,lbl]=LV[ph];
+  if(!pool[ph]||!pool[ph].length)pool[ph]=shuffle(DATA[ph].slice());
+  const q=pool[ph].pop(),opts=shuffle(q.slice(1,5));let t=TIME;
+  $('modalContent').innerHTML=`<h2>${p.pos==N?'🏁 Pergunta final!':'❓ Pergunta'}</h2>
+  <div style="text-align:center"><span class="phase-badge ${cls}">${lbl}</span></div>
+  <p class="who">${esc(p.name)} · casa ${p.pos}</p>
+  <div class="question-text">${q[0]}</div>
+  <div class="timer-bar"><div class="timer-fill" id="tf"></div></div>
+  <div class="timer-text" id="tt">⏱️ ${t}s</div>
+  <div class="options" id="opts">${opts.map(o=>`<button class="option">${o}</button>`).join('')}</div>
+  <div id="fb"></div>`;
+  [...$('opts').children].forEach(b=>b.onclick=()=>answer(b,q));
+  $('questionModal').classList.add('active');
+  clearInterval(timer);
+  timer=setInterval(()=>{t--;$('tt').textContent='⏱️ '+t+'s';$('tf').style.width=t/TIME*100+'%';if(t<=0)answer(null,q)},1000)}
+
+function answer(btn,q){
+  clearInterval(timer);
+  const p=P[cur],ok=!!btn&&btn.textContent==q[1],pts=phase(p.pos)*10;
+  [...$('opts').children].forEach(b=>{b.disabled=true;if(b.textContent==q[1])b.classList.add('correct');else if(b===btn)b.classList.add('wrong')});
+  if(ok){p.score+=pts;log(`✅ <b>${esc(p.name)}</b> acertou! +${pts} pts`)}
+  else log(`❌ <b>${esc(p.name)}</b> ${btn?'errou':'ficou sem tempo'}.`);
+  const msg=ok?`✅ Correto! +${pts} pontos`:btn?'❌ Não foi dessa vez! Volta 2 casas.':'⏰ Tempo esgotado! Volta 2 casas.';
+  $('fb').innerHTML=`<div class="result-msg ${ok?'correct':'wrong'}">${msg}</div><p class="expl">💡 ${q[5]}</p><button class="btn secondary" id="go">Continuar ▶</button>`;
+  $('go').onclick=()=>{
+    $('questionModal').classList.remove('active');
+    if(ok&&p.pos==N)return win(p);
+    if(!ok)p.pos=Math.max(1,p.pos-2);
+    cur=(cur+1)%P.length;$('rollBtn').disabled=false;render()}}
+
+function win(p){
+  $('winnerName').textContent=p.name+' venceu!';
+  $('winScores').innerHTML=[...P].sort((a,b)=>b.score-a.score).map(x=>`${esc(x.name)}: ${x.score} pts`).join('<br>');
+  $('winOverlay').querySelectorAll('.confetti').forEach(e=>e.remove());
+  for(let i=0;i<40;i++){const e=document.createElement('i');e.className='confetti';
+    e.style.cssText=`left:${Math.random()*100}%;background:${COLORS[i%4]};animation-delay:${Math.random()*3}s`;$('winOverlay').appendChild(e)}
+  $('winOverlay').classList.add('active')}
+
+function restart(){$('winOverlay').classList.remove('active');$('setup').classList.add('active')}
+
+$('numPlayers').addEventListener('change',drawInputs);
+$('startBtn').addEventListener('click',startGame);
+$('rollBtn').addEventListener('click',rollDice);
+$('restartBtn').addEventListener('click',restart);
+drawInputs();showDie(1);
+</script>
+</body>
+</html>
